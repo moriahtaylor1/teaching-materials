@@ -1,0 +1,77 @@
+---
+title: "Annotations Example"
+author: "Moriah"
+date: "9/26/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include = FALSE, warnings = FALSE, echo = TRUE}
+##install packages##
+library(dplyr)    #data manipulation
+library(datasets)    #collection of datasets
+library(rmarkdown)    #markdown
+```
+
+The dataframe **sleep** from the package **datasets** contains 20 observations on 3 variables and represent the results of an experiment in which two groups of students were given different treatments and the change in the hours of sleep that they got was recorded.   
+    * **extra**: change in hours of sleep (type = numeric)  
+    * **group**: drug given (type = factor)  
+    * **ID**: patient ID (type = factor)
+```{r, echo = TRUE}
+head(sleep)  #preview data
+
+#change column name
+#in order to prevent confusion when using
+#group_by() in piping
+colnames(sleep)[colnames(sleep)=="group"] <- "treatment"    #rename column
+head(sleep)    #see that column name is changed
+```
+Let's take a look at the average effects of each treatment.
+```{r, echo = TRUE}
+##find mean change in sleep for each treatment##
+averages <- sleep %>%    #store results to object named 'averages'
+  group_by(treatment) %>%    #group observations by treatment
+  summarise(avg = mean(extra))    #calculate mean change in hours of sleep
+averages    #see results
+```
+
+\pagebreak
+
+Now let's compare the boxplots of the effects of each treatment.
+```{r, echo = TRUE}
+##create a boxplot##
+boxplot(extra ~ treatment, data = sleep,
+        xlab = "Treatment",    #label x-axis
+        ylab = "Change in Sleep (Hrs)",    #label y-axis
+        main = "Treatment Effects",    #title boxplots
+        names = c("1", "2"),    #label treatment types
+        col = c("skyblue", "plum"),    #choose color for each boxplots
+        ylim = c(-2,6)    #increase range of y-axis
+        )
+```
+
+\pagebreak
+
+Finally, let's create a simple function called **eval_effect** that returns whether a value represents an increase, decrease, or no change. Then, let's apply that function to the column 'extra' in the sleep dataset and create a new column called 'effect'.
+```{r, echo = TRUE}
+##create function eval_effect##
+#input: value representing observed change
+#output: statement about type of change
+eval_effect <- function(observation){
+  if (observation > 0){    #label a positive value as an increase
+    return("increase")}
+  else if (observation < 0){    #label a negative value as a decrease
+    return("decrease")}
+  else {                    #label a zero value as no change
+    return("no change")}
+}
+
+##effect column##
+#create column
+sleep$effect <- apply(sleep[1], 1, eval_effect)    #apply eval_effect function to observations
+#view data with new column
+sleep
+```
